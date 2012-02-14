@@ -5,7 +5,7 @@ window.onload=function() {
 	zips = loadZIPs(),
 	zip_yql = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20json%20where%20url%20%3D%20'http%3A%2F%2Fmaps.googleapis.com%2Fmaps%2Fapi%2Fgeocode%2Fjson%3Flatlng%3D__LAT__%2C__LONG__%26sensor%3Dtrue'&format=json&diagnostics=true&callback=zipfunc",
 	news_yql = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20rss%20where%20url%20%3D%20'http%3A%2F%2Fnews.google.com%2Fnews%3Fgeo%3D__ZIP__%26output%3Drss'&format=json&callback=newsfunc",
-	woeid_yql = "http://query.yahooapis.com/v1/public/yql?q=select%20woeid%20from%20geo.places%20where%20text%3D'__ZIP__'%20limit%201&format=json&diagnostics=true&callback=woeidfunc",
+	woeid_yql = "http://query.yahooapis.com/v1/public/yql?q=select%20woeid%2Cname%20from%20geo.places%20where%20text%3D%22__ZIP__%22%20and%20country.code%20%3D%20%27US%27&format=json&diagnostics=true&callback=woeidfunc",
 	weather_yql = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20rss%20where%20url%3D'http%3A%2F%2Fweather.yahooapis.com%2Fforecastrss%3Fw%3D__WOEID__'&format=json&diagnostics=true&callback=weatherfunc";
 	
 	try {
@@ -33,94 +33,109 @@ window.onload=function() {
 		// get lat/long from geolocation
 		if (navigator.geolocation) {
 			navigator.geolocation.getCurrentPosition(function (pos) {
-				var xhr = new XMLHttpRequest();
-				xhr.open('GET', zip_yql.replace('__LAT__',pos.coords.latitude).replace('__LONG__', pos.coords.longtitude));
-				xhr.onreadystatechange = parseResponse;
-				xhr.send();
+				getExternal(zip_yql.replace('__LAT__',pos.coords.latitude).replace('__LONG__', pos.coords.longtitude));
 			}, displayError);
 		}
 	});
 	
-	// loads data from
+	// loads data from external sources
 	function getData(zip) {
 		// pull in data from external sources
-		var news_xhr = new XMLHttpRequest(),
-			weather_xhr = new XMLHttpRequest();
 		
 		// get news
-		news_xhr.open('GET', news_yql.replace('__ZIP__', zip));
-		news_xhr.onreadystatechange = parseResponse;
-		news_xhr.send();
+		getExternal(news_yql.replace('__ZIP__', zip));
 		
 		// get woeid if we need it
 		if (typeof zips[zip] == 'undefined') {
-			weather_xhr.open('GET', woeid_yql.replace('__ZIP__', zip));
-			weather_xhr.onreadystatechange = parseResponse;
-			weather_xhr.send();
+			getExternal(woeid_yql.replace('__ZIP__', zip));
 		}
 		else {
 			// get weather if we don't
-			weather_xhr.open('GET', weather_yql.replace('__WOEID__', zips[zip]));
-			weather_xhr.onreadystatechange = parseResponse;
-			weather_xhr.send();
+			getExternal(weather_yql.replace('__WOEID__', zips[zip]));
 		}
 	}
 	
 	// get the zip code from googleapis
-	function zipfunc(obj) {
+	window.zipfunc = function(obj) {
 		var i, l, j, k, addr,
-			res = obj.query.results.json.results,
-			zip = FALSE;
+			res, zip = FALSE;
 		
-		for (i=0,l=res.length;i<l;i++) {
-			addr = res[i].address_components;
-			for (j=0,k=addr.length;j<k;j++) {
-				if (addr[j].types == 'postal_code') {
-					zip = parseInt(addr[j].short_name):
-					break;
+		try {
+			res = obj.query.results.json.results;
+			for (i=0,l=res.length;i<l;i++) {
+				addr = res[i].address_components;
+				for (j=0,k=addr.length;j<k;j++) {
+					if (addr[j].types == 'postal_code') {
+						zip = parseInt(addr[j].short_name):
+						break;
+					}
 				}
+				if (zip) break;
 			}
-			if (zip) break;
+			
+			if (zip) {
+				getData(zip);
+			}
+			else {
+				displayError("Your position does not map to a US ZIP code.");
+			}
 		}
-		
-		if (zip) {
-			getData(zip);
-		}
-		else {
-			displayError("Your position does not map to a US ZIP code.");
+		catch (e) {
+			displayError('Error reading response from server. Please try again later.');
 		}
 	}
 	
 	// get news from googleapis
-	function newsfunc(obj) {
+	window.newsfunc = function(obj) {
+		var items,
+			i, l;
+		
+		try {
+			items = obj.query.results.item;
+		}
+		catch (e) {
+			displayError('There was an error reading results from our news provider. Please try again later.');
+			return;
+		}
+		
+		for (i=0,l=items.length;i<l;i++) {
+			// add descriptions as straight html?
+		}
 	}
 	
 	// get the woeid from yahoo apis
-	function woeidfunc(obj) {
-		// pull the woeid out of the object
-		var zip, woeid, i, l, j, k,
-			xhr = new XMLHttpRequest(),
-			res = obj.query.results.json.results,
-			address;
-				
+	window.woeidfunc = function(obj) {
+		// pull the woeid out of the object - 12759094
+		var zip, woeid;
 		
-		saveZIP(zip, woeid);
-		
-		// get the weather
-		xhr.open('GET', weather_yql.replace('__WOEID__', woeid));
-		xhr.onreadystatechange = parseResponse;
-		xhr.send();
-	}
-	
-	function weatherfunc(obj) {
-	}
-	
-	function parseResponse(tr) {
-		if (tr.readyState == 4) {
-			if (tr.status == 200 || tr.status == 302) {
-				eval(tr.responseText);
-			}
+		try {
+			woeid = obj.query.results.place.woeid;
+			zip = obj.query.results.place.name;
+			
+			saveZIP(zip, woeid);			
+			// get the weather
+			getExternal(weather_yql.replace('__WOEID__', woeid));
 		}
+		catch (e) {
+			displayError('There was a problem reading data from our weather provider. Please try again later.');
+		}
+	}
+	
+	window.weatherfunc = function(obj) {
+		var forecast;
+		try {
+			forecast = obj.query.results.item.description;
+			$('#weather')[0].innerHTML = forecast;
+		}
+		catch (e) {
+			displayError('There was a problem reading data from our weather provider. Please try again later.');
+		}
+	}
+	
+	function getExternal(url) {
+		var script = document.createElement('script');
+		script.src = url;
+		$('head')[0].appendChild(script);
 	}
 	
 	function isZIP(zip) {
