@@ -1,8 +1,13 @@
+/**
+	Matt Petrovic
+	mpetrovic@iq.harvard.edu
+	208228130
+ */
 window.onload=function() {
 	var support = {
-		store: null;
+		store: null,
 	},
-	zips = loadZIPs(),
+	zips,
 	zip_yql = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20json%20where%20url%20%3D%20'http%3A%2F%2Fmaps.googleapis.com%2Fmaps%2Fapi%2Fgeocode%2Fjson%3Flatlng%3D__LAT__%2C__LONG__%26sensor%3Dtrue'&format=json&diagnostics=true&callback=zipfunc",
 	news_yql = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20rss%20where%20url%20%3D%20'http%3A%2F%2Fnews.google.com%2Fnews%3Fgeo%3D__ZIP__%26output%3Drss'&format=json&callback=newsfunc",
 	woeid_yql = "http://query.yahooapis.com/v1/public/yql?q=select%20woeid%2Cname%20from%20geo.places%20where%20text%3D%22__ZIP__%22%20and%20country.code%20%3D%20%27US%27&format=json&diagnostics=true&callback=woeidfunc",
@@ -15,32 +20,86 @@ window.onload=function() {
 		support.store = false;
 	}
 	
-	var input = $('#zip_entered')[0];
-	$('#use')[0].addEventListener('click', function (e) {
+	zips = loadZIPs();
+	
+	/**
+	 * CLICK HANDLERS
+	 */
+	$('#use a')[0].addEventListener('click', function (e) {
 		e.preventDefault();
+		displayError('');
 		var zip = $('#zip_entered')[0].value;
 		
-		if (!isZIP(zip) {
+		if (!isZIP(zip)) {
 			displayError(zip+' is not a valid ZIP code!');
 			return;
 		}
 		
 		getData(zip);
+		toggle($('#use')[0], 'show');
 		
 	});
 	
 	$('#current')[0].addEventListener('click', function (e) {
+		e.preventDefault();
+		displayError('');
+		$('#use')[0].className = '';
+		$('#recent')[0].className = '';
 		// get lat/long from geolocation
 		if (navigator.geolocation) {
 			navigator.geolocation.getCurrentPosition(function (pos) {
-				getExternal(zip_yql.replace('__LAT__',pos.coords.latitude).replace('__LONG__', pos.coords.longtitude));
-			}, displayError);
+				getExternal(zip_yql.replace('__LAT__',pos.coords.latitude).replace('__LONG__', pos.coords.longitude));
+			}, function() {
+				displayError('Error getting your position.');
+			});
 		}
+	});
+	
+	$('#history')[0].addEventListener('click', function (e) {
+		e.preventDefault();
+		displayError('');
+		$('#use')[0].className = '';
+		// collect a list of recently used zips and
+		// put them in a div and display it
+		var keys = Object.keys(zips),
+			i, num = 5, str = 'Recent Searches:<br>';
+		for (i=0; i<num; i++) {
+			if (keys[i])
+				str += '<a href="#" data-zip="'+keys[i]+'">'+keys[i]+'</a>';
+		}
+		
+		var recent = $('#recent')[0];
+		recent.innerHTML = str;
+		toggle(recent, 'show');
+		
+	});
+	
+	$('#recent')[0].addEventListener('click', function (e) {
+		e.preventDefault();
+		displayError('');
+		
+		var zip = e.target.getAttribute('data-zip');
+		if (zip) {
+			getData(zip);
+			toggle(e.currentTarget, 'show');
+		}
+	});
+	
+	$('#enter')[0].addEventListener('click', function (e) {
+		toggle($('#use')[0], 'show');
+		$('#recent')[0].className = '';
+		displayError('');
 	});
 	
 	// loads data from external sources
 	function getData(zip) {
 		// pull in data from external sources
+		// reset everything
+		var panel = $('#panel')[0];
+		panel.className = '';
+		
+		$('#news')[0].innerHTML = '';
+		$('#weather')[0].innerHTML = '';
 		
 		// get news
 		getExternal(news_yql.replace('__ZIP__', zip));
@@ -55,10 +114,14 @@ window.onload=function() {
 		}
 	}
 	
+	/**
+	 * YQL CALLBACKS
+	 */
+	 
 	// get the zip code from googleapis
 	window.zipfunc = function(obj) {
 		var i, l, j, k, addr,
-			res, zip = FALSE;
+			res, zip = false;
 		
 		try {
 			res = obj.query.results.json.results;
@@ -66,7 +129,7 @@ window.onload=function() {
 				addr = res[i].address_components;
 				for (j=0,k=addr.length;j<k;j++) {
 					if (addr[j].types == 'postal_code') {
-						zip = parseInt(addr[j].short_name):
+						zip = addr[j]['short_name'];
 						break;
 					}
 				}
@@ -81,14 +144,15 @@ window.onload=function() {
 			}
 		}
 		catch (e) {
+			console.log(e);
 			displayError('Error reading response from server. Please try again later.');
 		}
 	}
 	
 	// get news from googleapis
 	window.newsfunc = function(obj) {
-		var items,
-			i, l;
+		var items, elem,
+			i, l, src = '';
 		
 		try {
 			items = obj.query.results.item;
@@ -98,8 +162,20 @@ window.onload=function() {
 			return;
 		}
 		
+		elem = $('#news')[0];
+		elem.innerHTML = '';
 		for (i=0,l=items.length;i<l;i++) {
 			// add descriptions as straight html?
+			src += items[i].description;
+		}
+		elem.innerHTML = src.replace(/ size=\"-1\"/g, '');
+		
+		var panel = $('#panel')[0];
+		if (panel.className.indexOf('loading') > -1) {
+			panel.className = 'loaded';
+		}
+		else {
+			panel.className = 'loading';
 		}
 	}
 	
@@ -125,10 +201,20 @@ window.onload=function() {
 		var forecast;
 		try {
 			forecast = obj.query.results.item.description;
-			$('#weather')[0].innerHTML = forecast;
 		}
 		catch (e) {
 			displayError('There was a problem reading data from our weather provider. Please try again later.');
+			return;
+		}
+		
+		$('#weather')[0].innerHTML = forecast;
+	
+		var panel = $('#panel')[0];
+		if (panel.className.indexOf('loading') > -1) {
+			panel.className = 'loaded';
+		}
+		else {
+			panel.className = 'loading';
 		}
 	}
 	
@@ -143,24 +229,20 @@ window.onload=function() {
 	}
 	
 	function saveZIP(zip, woeid) {
-		var d, i, l;
+		var d, i, found = false;
 		if (!support.store) {
 			displayError('Your browser is missing key features for this app to work!');
 			return;
 		}
 		
 		// save the zip to localstorage
-		d = localStorage['zip_list'];
-		if (d == '')
-			d = {};
-		else 
-			d = JSON.parse(d);
+		d = zips;
 			
 		for (i in d) {
-			if (d[zip] == zip) break;
+			if (d[zip] == woeid) found = true;
 		}
-		if (i==l) {
-			// we didn't find italics
+		if (!found) {
+			// we didn't find the woeid
 			d[zip] = woeid;
 			localStorage['zip_list'] = JSON.stringify(d);
 		}
@@ -174,7 +256,7 @@ window.onload=function() {
 		}
 		
 		d = localStorage['zip_list'];
-		if (d == '')
+		if (typeof d != 'string')
 			return {};
 		return JSON.parse(d);
 	}
@@ -182,8 +264,21 @@ window.onload=function() {
 	function displayError(err) {
 		$('#error')[0].innerHTML = err;
 	}
+	
+	// assumes there's only one class ever
+	// because that's all I used on these
+	function toggle(elem, classStr) {
+		if (elem.className.indexOf(classStr) > -1) {
+			elem.className = '';
+		}
+		else {
+			elem.className = classStr;
+		}
+	}
 };
 
-function $(css) {
+function $(css, ctx) {
+	if (ctx && typeof ctx == 'object' && 'querySelectorAll' in ctx)
+		return ctx.querySelectorAll(css);
 	return document.querySelectorAll(css);
 }

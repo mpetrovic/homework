@@ -1,3 +1,8 @@
+<!--
+Matt Petrovic
+mpetrovic@iq.harvard.edu
+208228130
+-->
 <!DOCTYPE html>
 <html>
 <head>
@@ -11,17 +16,23 @@
 	<script src="main.js"></script>
 </head>
 <body>
-	<div id="error"></div>
-	<a id="current" href="#" title="Get ZIP automatically">Get Current ZIP</a>
-	<a id="history" href="#" title="Get Earlier ZIP">Get Earlier ZIP</a>
-	<form>
-		<span>Enter a ZIP Code to get news and weather:</span>
-		<input id="zip_entered" type="number" size="7" maxlength="5" />
-		<a id="user" href="#" title="Use this ZIP">Use This Zip</a>
-	</form>
-	<div>
-		<div id="news"></div>
+	<div id="controls">
+		<a id="current" href="#" title="Get ZIP automatically">Find ZIP</a>
+		<a id="history" href="#" title="Get Earlier ZIP">Earlier ZIP</a>
+		<a id="enter" href="#" title="Enter ZIP">Enter ZIP</a>
+	</div>
+	<div id="panel">
 		<div id="weather"></div>
+		<div id="news"></div>
+	</div>
+	<div id="error"></div>
+	<div id="recent"></div>
+	<div id="use">
+		<form id="enter_zip">
+			<span>Enter a ZIP Code to get news and weather:</span>
+			<input id="zip_entered" type="number" size="7" maxlength="5" />
+			<a href="#" title="Use this ZIP">Use This Zip</a>
+		</form>
 	</div>
 </body>
 </html>
