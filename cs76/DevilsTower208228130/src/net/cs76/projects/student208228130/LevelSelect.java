@@ -15,9 +15,8 @@ public class LevelSelect extends Activity implements OnItemClickListener {
 		
 		setContentView(R.layout.level_select);
 		ListView list = (ListView)findViewById(R.id.levelSelect_list);
-		list.setAdapter(new LevelSelectAdapter());
+		list.setAdapter(new LevelSelectAdapter(this));
 		list.setOnItemClickListener(this);
-		this.getFilesDir();
 	}
 
 	/**
