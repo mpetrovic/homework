@@ -1,15 +1,17 @@
 {
-	tower01: {
-		position: 0,
-		start_width: 5,
-		start_height: 3,
-		speed: 1,
-		style: "medium",
-		consumable: "medium",
-		firefighter: false,
-		use_medium: false,
-		use_heavy: false,
-	},
+	towers: [
+		{
+			position: 0,
+			start_width: 5,
+			start_height: 3,
+			speed: 1,
+			style: "medium",
+			consumable: "medium",
+			firefighter: false,
+			use_medium: false,
+			use_heavy: false,
+		}
+	],
 	player: {
 		recharge: "medium",
 		drain: "medium",
@@ -18,6 +20,6 @@
 		background: false,
 		consumables: [
 			"water_to_wine"
-		]
+		],
 	}
 }

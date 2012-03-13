@@ -1,8 +1,18 @@
 package net.cs76.projects.student208228130;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Serializable;
 
+import android.content.Context;
+
 public class GameData implements Serializable {
+	
+	public static Context ctx;
+	
+	public Tower[] towers;
+	
 
 	/**
 	 * 
@@ -15,7 +25,6 @@ public class GameData implements Serializable {
 	 * @return	The game data from that source
 	 */
 	public static GameData load(String source) {
-		// stub
 		GameData g = new GameData();
 		
 		return g;
@@ -26,9 +35,8 @@ public class GameData implements Serializable {
 	 * @param id	The id of the level to pull data from
 	 * @return		The new game
 	 */
-	public static GameData create(long level) {
-		// TODO Auto-generated method stub
-		return null;
+	public static GameData create(int level) {
+		return loadDataFromRaw(level);
 	}
 	
 	/**
@@ -37,5 +45,14 @@ public class GameData implements Serializable {
 	 */
 	private GameData() {
 		
+	}
+	
+	private static GameData loadDataFromRaw(int raw) {
+		InputStreamReader isr = new InputStreamReader(ctx.getResources().openRawResource(raw));
+		BufferedReader bfr = new BufferedReader(isr);
+		
+		GameData gd = new GameData();
+		
+		return gd;
 	}
 }

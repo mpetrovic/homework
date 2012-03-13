@@ -12,23 +12,26 @@ public class MainMenu extends Activity implements OnClickListener {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        
+        // assign the context so the game engine can access it
+        GameData.ctx = this;
     }
 
 	public void onClick(View v) {
 		Intent i = new Intent();
 		switch (v.getId()) {
 			case R.id.mainMenu_Continue:
-				i.setClass(this, GamePlay.class);
+				i.setClass(this, GamePlayActivity.class);
 				i.putExtra("gameData", GameData.load("continue"));
 				break;
 			case R.id.mainMenu_NewGame:
-				i.setClass(this, LevelSelect.class);
+				i.setClass(this, LevelSelectActivity.class);
 				break;
 			case R.id.mainMenu_HighScores:
-				i.setClass(this, HighScores.class);
+				i.setClass(this, HighScoresActivity.class);
 				break;
 			case R.id.mainMenu_Settings:
-				i.setClass(this, GameSettings.class);
+				i.setClass(this, GameSettingsActivity.class);
 				break;
 			case R.id.mainMenu_ExitGame:
 				finish();
