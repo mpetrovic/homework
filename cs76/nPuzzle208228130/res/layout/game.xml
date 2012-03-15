@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<GridView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/gameGrid"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/gameParent"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:numColumns="auto_fit" >
+    android:gravity="center"
+    android:orientation="vertical" >
 
-</GridView>
+    <GridView
+        android:id="@+id/gameGrid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:gravity="center"
+        android:numColumns="3" >
+        <!-- Preview: listitem=@android:layout/simple_list_item_1 -->
+    </GridView>
+
+</RelativeLayout>

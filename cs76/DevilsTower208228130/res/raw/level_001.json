@@ -2,14 +2,30 @@
 	towers: [
 		{
 			position: 0,
-			start_width: 5,
-			start_height: 3,
 			speed: 1,
+			can_build: 1,
 			style: "medium",
 			consumable: "medium",
 			firefighter: false,
 			use_medium: false,
 			use_heavy: false,
+			starting: {
+				0|0: 1,
+				0|1: 1,
+				0|2: 1,
+				1|0: 1,
+				1|1: 1,
+				2|0: 1,
+				2|1: 1,
+				2|2: 1,
+				3|0: 1,
+				3|1: 1,
+				4|0: 1,
+				4|1: 1,
+				4|2: 1,
+				5|0: 1,
+				5|1: 1
+			}
 		}
 	],
 	player: {

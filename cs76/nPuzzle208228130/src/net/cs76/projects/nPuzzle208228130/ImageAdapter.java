@@ -1,3 +1,8 @@
+/**
+ * Matt Petrovic
+ * mpetrovic@iq.harvard.edu
+ * 208228130
+ */
 package net.cs76.projects.nPuzzle208228130;
 
 import java.lang.reflect.Field;
@@ -66,7 +71,6 @@ public class ImageAdapter extends BaseAdapter {
 		// these should never happen
 		catch (IllegalAccessException e) {}
 		catch (IllegalArgumentException e) {}
-		
 	}
 	
 
@@ -97,9 +101,11 @@ public class ImageAdapter extends BaseAdapter {
 		LayoutInflater infl = (LayoutInflater)ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		ViewGroup row = (ViewGroup)infl.inflate(R.layout.main_item, null);
 		
+		// sets the preview of the image
 		ImageView img = (ImageView)row.findViewById(R.id.mainMenuRowImage);
 		img.setImageBitmap(cache[position]);
 		
+		// sets the filename
 		TextView txt = (TextView)row.findViewById(R.id.mainMenuRowText);
 		txt.setText(fnames[position]);
 		return row;

@@ -3,5 +3,7 @@
 
     <string name="hello">Hello World, ImageSelection!</string>
     <string name="app_name">NPuzzle208228130</string>
+    <string name="congrats">Congratulations! You won!</string>
+    <string name="moves">Moves Used: </string>
 
 </resources>

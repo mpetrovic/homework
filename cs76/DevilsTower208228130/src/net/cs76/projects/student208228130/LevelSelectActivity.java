@@ -25,7 +25,7 @@ public class LevelSelectActivity extends Activity implements OnItemClickListener
 	 */
 	public void onItemClick(AdapterView<?> adapter, View view, int pos, long id) {
 		Intent i = new Intent(this, GamePlayActivity.class);
-		GameData g = GameData.create(id);
+		GameData g = GameData.create((int)id);
 		i.putExtra("gameData", g);
 		startActivity(i);
 		finish();

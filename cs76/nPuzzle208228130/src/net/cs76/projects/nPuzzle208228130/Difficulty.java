@@ -1,4 +1,14 @@
+/**
+ * Matt Petrovic
+ * mpetrovic@iq.harvard.edu
+ * 208228130
+ * 
+ * Static class that stores and handles the difficulty of the game
+ */
 package net.cs76.projects.nPuzzle208228130;
+
+import android.content.Context;
+import android.content.SharedPreferences;
 
 public class Difficulty {
 	// constants
@@ -14,7 +24,7 @@ public class Difficulty {
 	 * @param The new difficulty level. Must be one of the marked difficulties
 	 * If the difficulty given is not in the allowed range, nothing is changed
 	 */
-	static boolean d(int new_diff) {
+	public static boolean d(int new_diff) {
 		if (new_diff != EASY && new_diff != NORMAL && new_diff != HARD)
 			return false;
 		
@@ -25,7 +35,7 @@ public class Difficulty {
 	/**
 	 * Gets the difficulty of the game
 	 */
-	static int d() {
+	public static int d() {
 		return diff;
 	}
 	
@@ -33,7 +43,7 @@ public class Difficulty {
 	 * Gets the size of the game board.
 	 * All game boards are square by default, so this is a single int
 	 */
-	static int size() {
+	public static int size() {
 		switch (diff) {
 		case EASY:
 			return 3;
@@ -43,5 +53,25 @@ public class Difficulty {
 		default:
 			return 4;
 		}
+	}
+	
+	/**
+	 * Saves the chosen difficulty to preferences
+	 * @param ctx
+	 */
+	public static void putToStore(Context ctx) {
+		SharedPreferences prefs = ctx.getSharedPreferences("nPuzzle", Context.MODE_PRIVATE);
+		prefs.edit().putInt("difficulty", diff).commit();
+	}
+	
+	/**
+	 * Loads the saved difficulty
+	 * @param ctx
+	 * @return
+	 */
+	public static int getFromStore(Context ctx) {
+		SharedPreferences prefs = ctx.getSharedPreferences("nPuzzle", Context.MODE_PRIVATE);
+		d(prefs.getInt("difficulty", 4));
+		return d();
 	}
 }
